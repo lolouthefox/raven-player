@@ -13,6 +13,7 @@
 	import queueTray from '$lib/queueTray';
 	import playerTray from '$lib/playerTray';
 	import showLyrics from '$lib/showLyrics';
+	import currentTime from '$lib/currentTime';
 
 	let currentArtists: Artist[] | null = $state(null);
 	let player: HTMLAudioElement | null = $state(null);
@@ -99,6 +100,13 @@
 	});
 	showLyrics.subscribe((show) => {
 		showLyricsState = show;
+	});
+
+	currentTime.subscribe((time) => {
+		if (time > 0) return;
+		if (player) {
+			player.currentTime = Math.abs(time);
+		}
 	});
 </script>
 
@@ -205,6 +213,7 @@
 			ontimeupdate={() => {
 				if (!player) return;
 				songProgress = (player.currentTime / player.duration) * 100;
+				currentTime.set(player.currentTime);
 
 				// Update Media Session API position state
 				if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {

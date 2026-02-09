@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { libraryApi } from '$lib/api';
+	import ContextMenuArea from '$lib/comps/ContextMenuArea.svelte';
 	import RescanButton from '$lib/comps/RescanButton.svelte';
 	import { addToQueue, clearQueue, playNow, queueIndex } from '$lib/queue';
 	let { data } = $props();
@@ -20,12 +21,14 @@
 >
 <div class="song-list">
 	{#each songs as song}
-		<button class="song" onclick={() => playNow(song)}>
-			<img src={libraryApi.getCoverUrl(song.id)} alt="" />
-			<div class="details">
-				<p class="title">{song.title}</p>
-			</div>
-		</button>
+		<ContextMenuArea {song}>
+			<button class="song" ondblclick={() => playNow(song)}>
+				<img src={libraryApi.getCoverUrl(song.id)} alt="" />
+				<div class="details">
+					<p class="title">{song.title}</p>
+				</div>
+			</button>
+		</ContextMenuArea>
 	{/each}
 </div>
 

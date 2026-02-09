@@ -7,6 +7,7 @@
 	import { fade } from 'svelte/transition';
 	import Icon from './Icon.svelte';
 	import showLyrics from '$lib/showLyrics';
+	import SyncedLyricsDisplay from './SyncedLyricsDisplay.svelte';
 
 	let currentArtists = $state<Artist[] | null>(null);
 	let lyrics: LyricsResponse | null = $state(null);
@@ -45,8 +46,12 @@
 		)});"
 	>
 		<div class="content">
-			{#if $showLyrics && lyrics?.plainLyrics && !lyricsLoading}
-				<pre transition:fade={{ duration: 1000 }}>{lyrics.plainLyrics}</pre>
+			{#if $showLyrics && !lyricsLoading}
+				{#if lyrics?.syncedLyrics}
+					<SyncedLyricsDisplay rawLyrics={lyrics?.syncedLyrics} />
+				{:else if lyrics?.plainLyrics}
+					<pre transition:fade={{ duration: 1000 }}>{lyrics.plainLyrics}</pre>
+				{/if}
 			{/if}
 			<div class="meta" class:tinymeta={$showLyrics && lyrics?.plainLyrics}>
 				<img src={libraryApi.getCoverUrl($currentSong)} alt="" />

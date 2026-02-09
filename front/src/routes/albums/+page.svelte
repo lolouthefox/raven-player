@@ -1,26 +1,22 @@
 <script lang="ts">
 	import { libraryApi } from '$lib/api';
 	import RescanButton from '$lib/comps/RescanButton.svelte';
+
+	let { data } = $props();
 </script>
 
 <RescanButton />
-{#await libraryApi.getAlbums()}
-	<p>Loading albums...</p>
-{:then albums}
-	<div class="album-list">
-		{#each albums as album}
-			<a class="album" href={`/album/${album.id}`}>
-				<img src={libraryApi.getCoverUrl(album.songs[0].id)} alt="" />
-				<div class="details">
-					<p class="title">{album.title}</p>
-					<p class="artists">{album.artists.map((artist) => artist.name).join(', ')}</p>
-				</div>
-			</a>
-		{/each}
-	</div>
-{:catch error}
-	<p>Error loading albums: {error.message}</p>
-{/await}
+<div class="album-list">
+	{#each data.albums as album}
+		<a class="album" href={`/album/${album.id}`}>
+			<img src={libraryApi.getCoverUrl(album.songs[0].id)} alt="" />
+			<div class="details">
+				<p class="title">{album.title}</p>
+				<p class="artists">{album.artists.map((artist) => artist.name).join(', ')}</p>
+			</div>
+		</a>
+	{/each}
+</div>
 
 <style>
 	.album-list {
