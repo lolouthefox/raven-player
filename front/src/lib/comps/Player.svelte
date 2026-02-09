@@ -22,8 +22,22 @@
 	currentSong.subscribe(async (song) => {
 		if (song) {
 			currentArtists = await libraryApi.getArtists(song.artistIds);
+
+			// Update Media Session API metadata
+			if ('mediaSession' in navigator) {
+				const artistNames = currentArtists?.map((a) => a.name).join(', ') || 'Unknown Artist';
+				navigator.mediaSession.metadata = new MediaMetadata({
+					title: song.title,
+					artist: artistNames,
+					album: '',
+					artwork: [{ src: libraryApi.getCoverUrl(song), sizes: '512x512', type: 'image/jpeg' }]
+				});
+			}
 		} else {
 			currentArtists = null;
+			if ('mediaSession' in navigator) {
+				navigator.mediaSession.metadata = null;
+			}
 		}
 	});
 
@@ -38,8 +52,26 @@
 	}
 
 	onMount(() => {
-		if (!player) return;
-		paused = player.paused;
+		// Set up Media Session API action handlers
+		if ('mediaSession' in navigator) {
+			navigator.mediaSession.setActionHandler('play', () => {
+				player?.play();
+			});
+			navigator.mediaSession.setActionHandler('pause', () => {
+				player?.pause();
+			});
+			navigator.mediaSession.setActionHandler('previoustrack', () => {
+				skipPrevious();
+			});
+			navigator.mediaSession.setActionHandler('nexttrack', () => {
+				skipNext();
+			});
+			navigator.mediaSession.setActionHandler('seekto', (details) => {
+				if (player && details.seekTime) {
+					player.currentTime = details.seekTime;
+				}
+			});
+		}
 	});
 
 	let shuffle = $state(false);
@@ -173,6 +205,18 @@
 			ontimeupdate={() => {
 				if (!player) return;
 				songProgress = (player.currentTime / player.duration) * 100;
+
+				// Update Media Session API position state
+				if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+					if (isFinite(player.duration) && isFinite(player.currentTime)) {
+						navigator.mediaSession.setPositionState({
+							duration: player.duration,
+							playbackRate: player.playbackRate,
+							position: player.currentTime
+						});
+					}
+				}
+
 				if (songProgress == 100) {
 					if (repeat === 'one') {
 						player.currentTime = 0;

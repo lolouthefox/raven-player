@@ -6,19 +6,6 @@
 	import JuicyButton from './JuicyButton.svelte';
 
 	let artists: Artist[] = $state([]);
-
-	queue.subscribe(async (songs) => {
-		await Promise.all(
-			songs.map(async (song) => {
-				const songArtists = await libraryApi.getArtists(song.artistIds);
-				artists.push(...songArtists);
-			})
-		);
-		// Remove duplicates
-		artists = artists.filter(
-			(artist, index, self) => index === self.findIndex((a) => a.id === artist.id)
-		);
-	});
 </script>
 
 <div class="queue-tray" style="right: {$queueTray ? 24 : -400}px;">
@@ -76,6 +63,7 @@
 
 		display: flex;
 		flex-direction: column;
+		overflow-y: auto;
 	}
 
 	.song {
@@ -92,10 +80,10 @@
 		transition-duration: 0.25s;
 	}
 	.song:hover {
-		background-color: rgb(50, 50, 50);
+		background-color: rgba(255, 255, 255, 0.15);
 	}
 	.song.current {
-		background-color: rgb(75, 75, 75);
+		background-color: rgba(255, 255, 255, 0.25);
 		color: white;
 	}
 	.song button {
@@ -113,6 +101,10 @@
 	}
 	.title {
 		font-weight: bold;
+		width: 225px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	.artists {
 		font-size: 12px;

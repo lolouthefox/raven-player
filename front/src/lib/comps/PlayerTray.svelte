@@ -17,16 +17,19 @@
 		lyrics = null;
 		if (song) {
 			lyricsLoading = true;
-			const [artists, loadedLyrics] = await Promise.all([
-				libraryApi.getArtists(song.artistIds),
-				getLyrics(song)
-			]);
-			// Only update if we're still on the same song
-			if ($currentSong === loadingSong) {
-				currentArtists = artists;
-				lyrics = loadedLyrics;
-				lyricsLoading = false;
-			}
+			// Load artists
+			libraryApi.getArtists(song.artistIds).then((artists) => {
+				if ($currentSong === loadingSong) {
+					currentArtists = artists;
+				}
+			});
+			// Load lyrics
+			getLyrics(song).then((loadedLyrics) => {
+				if ($currentSong === loadingSong) {
+					lyrics = loadedLyrics;
+					lyricsLoading = false;
+				}
+			});
 		} else {
 			currentArtists = null;
 			playerTray.set(false);
