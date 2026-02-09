@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { libraryApi } from '$lib/api';
+	import PlayTrackListButtons from '$lib/comps/PlayTrackListButtons.svelte';
 	import TrackList from '$lib/comps/TrackList.svelte';
 
 	let { params } = $props();
@@ -21,6 +22,7 @@
 						<a href="/artist/{artist.id}">{artist.name}</a>
 					{/each}
 				</span>
+				<PlayTrackListButtons songs={album.songs} />
 			</div>
 		</div>
 		<div class="fx"></div>

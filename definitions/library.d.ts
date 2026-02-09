@@ -11,6 +11,7 @@ export interface Album {
 
 export interface Song {
     id: string;
+    index: number; // track number in the album
     title: string;
 
     // Ids used to avoid circular references in the data structure

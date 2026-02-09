@@ -85,13 +85,47 @@ const server = Bun.serve({
             });
         },
 
-        "/api/audio/:id": (req) => {
+        "/api/audio/:id": async (req) => {
             const { id } = req.params;
             const song = library.songs.find(s => s.id === id);
             if (!song) {
                 return new Response("Song not found", { status: 404, headers });
             }
-            return new Response(Bun.file(song.path), { status: 200, headers });
+
+            const file = Bun.file(song.path);
+            const fileSize = file.size;
+            const range = req.headers.get("range");
+
+            // If no range header, serve the whole file
+            if (!range) {
+                return new Response(file, {
+                    status: 200,
+                    headers: {
+                        ...headers,
+                        "Content-Type": "audio/mpeg",
+                        "Content-Length": fileSize.toString(),
+                        "Accept-Ranges": "bytes"
+                    }
+                });
+            }
+
+            // Parse range header
+            const parts = range.replace(/bytes=/, "").split("-");
+            const start = parseInt(parts[0]!, 10);
+            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+            const chunksize = (end - start) + 1;
+
+            // Serve the requested range
+            return new Response(file.slice(start, end + 1), {
+                status: 206,
+                headers: {
+                    ...headers,
+                    "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+                    "Accept-Ranges": "bytes",
+                    "Content-Length": chunksize.toString(),
+                    "Content-Type": "audio/mpeg"
+                }
+            });
         },
 
         "/api/rescan": async (req) => {

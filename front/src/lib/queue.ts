@@ -55,9 +55,12 @@ export function playNow(song: Song) {
     queueIndex.update(i => i + 1);
 }
 
-export function skipNext() {
+export function skipNext(loop = false) {
     let queueLength = currentQueue.length;
-    queueIndex.update(i => Math.min(i + 1, queueLength - 1));
+    queueIndex.update(i => {
+        const nextIndex = i + 1;
+        return loop && nextIndex >= queueLength ? 0 : Math.min(nextIndex, queueLength - 1);
+    });
 }
 
 export function skipPrevious() {

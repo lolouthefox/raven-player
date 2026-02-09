@@ -77,6 +77,7 @@ export class MusicLibrary {
         for (const folder of this.folders) {
             await this.scanFolder(folder);
         }
+        this.reorderAll();
     }
 
     async scanFolder(folder: string) {
@@ -84,7 +85,7 @@ export class MusicLibrary {
 
         for (const entry of entries) {
             if (entry.isFile() && this.allowMatchingTypes.some(ext => entry.name.endsWith(ext))) {
-                const path = `${folder}/${entry.name}`;
+                const path = `${entry.parentPath}/${entry.name}`;
                 await this.addSong(path);
             }
         }
@@ -102,6 +103,7 @@ export class MusicLibrary {
         const duration = metadata.format.duration || -1;
         const coverArt = metadata.common.picture || null;
         const quality = metadata.format.bitrate ? `${Math.round(metadata.format.bitrate / 1000)}kbps` : "Unknown Quality";
+        const index = metadata.common.track;
 
         const artistObjs = await this.getArtistsByNames(artists);
         const album = await this.getAlbumByTitle(albumTitle, artistObjs.map(a => a.id));
@@ -116,7 +118,8 @@ export class MusicLibrary {
             duration: duration,
             path,
             quality: quality,
-        }
+            index: index.no ?? 0,
+        };
 
         // Add song to library
         this.#songs.push(song);
@@ -173,6 +176,18 @@ export class MusicLibrary {
             this.#albums.push(album);
         }
         return album;
+    }
+
+    reorderAll() {
+        this.#albums = this.#albums.map(album => this.reorderTracksByIndex(album));
+    }
+
+    reorderTracksByIndex(album: Album): Album {
+        const sortedSongs = [...album.songs].sort((a, b) => a.index - b.index);
+        return {
+            ...album,
+            songs: sortedSongs,
+        };
     }
 
     static parseMetadataStringArray(str: string): string[] {

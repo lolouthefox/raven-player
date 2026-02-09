@@ -1,5 +1,6 @@
-import type { Artist } from "$definitions/library";
+import type { Artist, Song } from "$definitions/library";
 import axios from "axios";
+import { libraryApi } from "./api";
 
 export function secondsToFormattedTime(seconds: number) {
     const minutes = Math.floor(seconds / 60);
@@ -21,4 +22,28 @@ export async function getArtistProfileInfos(artist: Artist): Promise<ArtistProfi
         profilePicture: data?.artists?.[0]?.strArtistThumb || null,
         banner: data?.artists?.[0]?.strArtistFanart || null
     };
+}
+
+export interface LyricsResponse {
+    id: number,
+    trackName: string,
+    artistName: string,
+    albumName: string,
+    duration: number,
+    instrumental: boolean,
+    plainLyrics: string,
+    syncedLyrics: string
+}
+
+export async function getLyrics(song: Song): Promise<LyricsResponse | null> {
+    try {
+        const artists = await libraryApi.getArtists(song.artistIds);
+        const album = await libraryApi.getAlbum(song.albumId);
+        const artistsNames = artists.map(a => a.name).join(", ");
+        const { data } = await axios.get(`https://lrclib.net/api/get?artist_name=${encodeURIComponent(artistsNames)}&track_name=${encodeURIComponent(song.title)}&album_name=${encodeURIComponent(album.title)}&duration=${song.duration}`);
+        return data || null;
+    } catch (error) {
+        console.error("Error fetching lyrics:", error);
+        return null;
+    }
 }

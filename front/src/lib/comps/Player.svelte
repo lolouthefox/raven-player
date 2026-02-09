@@ -12,6 +12,7 @@
 	import Icon from './Icon.svelte';
 	import queueTray from '$lib/queueTray';
 	import playerTray from '$lib/playerTray';
+	import showLyrics from '$lib/showLyrics';
 
 	let currentArtists: Artist[] | null = $state(null);
 	let player: HTMLAudioElement | null = $state(null);
@@ -58,6 +59,14 @@
 	});
 	queueTray.subscribe((open) => {
 		queueTrayOpen = open;
+	});
+
+	let showLyricsState = $state(false);
+	$effect(() => {
+		showLyrics.set(showLyricsState);
+	});
+	showLyrics.subscribe((show) => {
+		showLyricsState = show;
 	});
 </script>
 
@@ -143,6 +152,7 @@
 		</div>
 
 		<div class="left-actions">
+			<JuicyToggleButton icon="microphone-stage" bind:state={showLyricsState} />
 			<JuicyToggleButton icon="monitor-play" bind:state={playerTrayOpen} />
 			<JuicyToggleButton icon="queue" bind:state={queueTrayOpen} />
 			<p class="quality">{$currentSong.quality}</p>
@@ -164,7 +174,12 @@
 				if (!player) return;
 				songProgress = (player.currentTime / player.duration) * 100;
 				if (songProgress == 100) {
-					skipNext();
+					if (repeat === 'one') {
+						player.currentTime = 0;
+						player.play();
+						return;
+					}
+					skipNext(repeat === 'repeat');
 				}
 			}}
 			src={libraryApi.getAudioUrl($currentSong)}

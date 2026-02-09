@@ -37,7 +37,7 @@
 					{#if $currentSong?.id === song.id}
 						<Icon icon="speaker-high" size="16px" />
 					{:else}
-						{index + 1}
+						<span>{song.index}</span>
 					{/if}
 				</div>
 				<div class="titleColumn">{song.title}</div>
