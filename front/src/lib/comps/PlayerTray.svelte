@@ -150,7 +150,7 @@
 	.tinymeta img {
 		width: 128px;
 		height: 128px;
-		border-radius: 16px;
+		border-radius: 8px;
 	}
 	.tinymeta .title {
 		font-size: 24px;
